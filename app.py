@@ -31,11 +31,11 @@ if login_clicked:
         st.sidebar.error("Invalid username or password")
 
 if signup_clicked:
-    result = add_user(username, password)
-    if "success" in result.lower():
+    if add_user(username, password):
         st.sidebar.success("Account created. You can sign in now.")
     else:
-        st.sidebar.error(result)
+        st.sidebar.error("Username already exists")
+
 
 st.sidebar.divider()
 
