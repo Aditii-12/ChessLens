@@ -64,3 +64,13 @@ else:
     st.sidebar.button("Analyze Position")
 
     st.info("More analysis features will be added here.")
+
+st.subheader("Manual FEN Input")
+
+fen_input = st.text_area(
+    "Paste FEN here",
+    placeholder="e.g. rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+)
+
+if fen_input:
+    st.code(fen_input, language="text")
