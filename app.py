@@ -74,7 +74,10 @@ fen_input = st.text_area(
 )
 
 if fen_input:
-    st.code(fen_input, language="text")
     results = analyze_fen(fen_input)
+    st.subheader("Best Moves")
+    for r in results:
+        st.write(f"{r['move']} — {r['score']}")
+
     
 
