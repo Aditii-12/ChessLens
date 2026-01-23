@@ -1,11 +1,13 @@
-"""
-screen_shot.py
+import pyautogui
+import time
+import os
 
-Handles taking screenshots for ChessLens.
-"""
+def capture_screen(save_dir="data/screenshots"):
+    os.makedirs(save_dir, exist_ok=True)
+    timestamp = int(time.time())
+    path = f"{save_dir}/screenshot_{timestamp}.png"
 
-def capture_screen():
-    """
-    Capture screenshot of the chess board.
-    """
-    return None
+    screenshot = pyautogui.screenshot()
+    screenshot.save(path)
+
+    return path

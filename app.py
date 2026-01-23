@@ -1,22 +1,24 @@
 import streamlit as st
 from database import init_db, login_user, add_user
+from screen_shot import capture_screen
 
-# Init DB
+# Initialize database
 init_db()
 
 st.set_page_config(page_title="ChessLens", layout="wide")
 
-# Session state
+# ---------- SESSION STATE ----------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.username = None
 
+# ---------- MAIN UI ----------
 st.title("♟ ChessLens")
 st.write("ChessLens dashboard — under development")
 
 st.sidebar.title("Controls")
 
-# ---------- AUTH ----------
+# ---------- AUTH SECTION ----------
 if not st.session_state.logged_in:
     st.sidebar.subheader("Authentication")
 
@@ -53,7 +55,12 @@ else:
         st.rerun()
 
     st.sidebar.divider()
-    st.sidebar.button("Capture Screenshot")
+
+    if st.sidebar.button("Capture Screenshot"):
+        path = capture_screen()
+        st.success("Screenshot captured")
+        st.image(path, caption="Captured Screenshot")
+
     st.sidebar.button("Analyze Position")
 
-    st.info("Dashboard features will appear here after login.")
+    st.info("More analysis features will be added here.")
