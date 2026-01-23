@@ -1,6 +1,7 @@
 import streamlit as st
 from database import init_db, login_user, add_user
 from screen_shot import capture_screen
+from engine import analyze_fen
 
 # Initialize database
 init_db()
@@ -74,3 +75,6 @@ fen_input = st.text_area(
 
 if fen_input:
     st.code(fen_input, language="text")
+    results = analyze_fen(fen_input)
+    
+
