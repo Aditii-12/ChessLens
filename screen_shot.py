@@ -1,13 +1,13 @@
 import pyautogui
-import time
 import os
+import time
 
 def capture_screen(save_dir="data/screenshots"):
     os.makedirs(save_dir, exist_ok=True)
     timestamp = int(time.time())
-    path = f"{save_dir}/screenshot_{timestamp}.png"
+    path = os.path.join(save_dir, f"screenshot_{timestamp}.png")
 
-    screenshot = pyautogui.screenshot()
-    screenshot.save(path)
+    img = pyautogui.screenshot()
+    img.save(path)
 
     return path
