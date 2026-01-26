@@ -1,103 +1,76 @@
 import streamlit as st
-from database import init_db, login_user, add_user
-from screen_shot import capture_screen
-from engine import analyze_fen
+import base64
+import subprocess
+import database as db
+import os
+import pandas as pd
+import json
+from streamlit_autorefresh import st_autorefresh
 
-st.set_page_config(
-    page_title="ChessLens",
-    layout="wide"
-)
+st_autorefresh(interval=5000, key="json_refresh")
 
-init_db()
+def set_bg(png_file):
+    with open(png_file, "rb") as f:
+        data = f.read()
+    encoded = base64.b64encode(data).decode()
+    css = f"""
+    <style>
+    .stApp {{
+        background-image: url("data:image/png;base64,{encoded}");
+        background-size: cover;
+        background-position: center;
+    }}
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
+
+set_bg("assets/this.jpeg")
+db.init_db("data/users.db")
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+if "username" not in st.session_state:
     st.session_state.username = None
+if "played" not in st.session_state:
+    st.session_state.played = False
 
-st.title("♟ ChessLens")
-st.caption("ChessLens dashboard — under development")
+st.sidebar.title("🔑 Authentication")
+auth_choice = st.sidebar.selectbox("Choose", ["Login", "Sign Up", "Logout"])
 
-st.sidebar.title("Controls")
+st.markdown("<h1>♟ ChessLens</h1>", unsafe_allow_html=True)
 
-if not st.session_state.logged_in:
-    st.sidebar.subheader("Authentication")
-
-    username = st.sidebar.text_input("Username")
-    password = st.sidebar.text_input("Password", type="password")
-
-    col1, col2 = st.sidebar.columns(2)
-    login_clicked = col1.button("Sign In")
-    signup_clicked = col2.button("Sign Up")
-
-    if login_clicked:
-        if not username.strip() or not password.strip():
-            st.sidebar.error("Username and password cannot be empty ❌")
+if auth_choice == "Login" and not st.session_state.logged_in:
+    u = st.text_input("Username")
+    p = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if db.login_user(u, p):
+            st.session_state.logged_in = True
+            st.session_state.username = u
+            st.rerun()
         else:
-            user = login_user(username, password)
-            if user:
-                st.session_state.logged_in = True
-                st.session_state.username = username
-                st.sidebar.success(f"Welcome, {username} 🎉")
-                st.rerun()
-            else:
-                st.sidebar.error("Invalid username or password ❌")
+            st.error("Invalid credentials")
 
-    if signup_clicked:
-        if not username.strip() or not password.strip():
-            st.sidebar.error("Username and password cannot be empty ❌")
-        else:
-            result = add_user(username, password)
-            if "successfully" in result.lower():
-                st.sidebar.success("Account created! You can sign in now ✅")
-            else:
-                st.sidebar.error(result)
+elif auth_choice == "Sign Up":
+    u = st.text_input("New Username")
+    p = st.text_input("Password", type="password")
+    if st.button("Sign Up"):
+        st.success(db.add_user(u, p))
 
-else:
-    st.sidebar.success(f"Logged in as {st.session_state.username}")
+elif auth_choice == "Logout":
+    st.session_state.logged_in = False
+    st.session_state.played = False
 
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in = False
-        st.session_state.username = None
-        st.rerun()
+if st.session_state.logged_in:
+    st.success(f"Welcome {st.session_state.username}")
+    if st.button("▶ Play"):
+        subprocess.Popen(["python3", "mouse.py"])
+        st.session_state.played = True
 
-    st.sidebar.divider()
-
-    if st.sidebar.button("Capture Screenshot"):
-        try:
-            path = capture_screen()
-            st.success("Screenshot captured 📸")
-            st.image(path, caption="Captured Screenshot")
-        except Exception as e:
-            st.error(f"Screenshot failed: {e}")
-
-    st.info("More automation & gesture features will be added here.")
-
-
-st.subheader("Manual FEN Input")
-
-fen_input = st.text_area(
-    "Paste FEN here",
-    placeholder="e.g. rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-)
-
-analyze_clicked = st.button("Analyze FEN")
-
-if analyze_clicked:
-    if not fen_input.strip():
-        st.warning("Please enter a FEN string ⚠️")
-    elif len(fen_input.split()) < 4:
-        st.error("Invalid FEN format ❌")
-    else:
-        try:
-            with st.spinner("Analyzing position with Stockfish ♟️"):
-                results = analyze_fen(fen_input)
-
-            if not results:
-                st.warning("No analysis returned.")
-            else:
-                st.subheader("Best Moves")
-                for r in results:
-                    st.write(f"**{r['move']}** — {r['score']}")
-
-        except Exception as e:
-            st.error(f"Analysis failed: {e}")
+    if st.session_state.played:
+        if os.path.exists("data/ready.flag"):
+            with open("data/chess_analysis.json") as f:
+                data = json.load(f)
+            for k, v in data.items():
+                st.subheader(k)
+                st.table(pd.DataFrame(v["best_moves"]))
+                st.write("Future:", v["future_moves"])
