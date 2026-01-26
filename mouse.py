@@ -8,6 +8,7 @@ draw = mp.solutions.drawing_utils
 screen_c = 0
 
 def main():
+    global screen_c
     cap = cv2.VideoCapture(0)
     subprocess.Popen(["streamlit", "run", "app.py"])
     while True:
