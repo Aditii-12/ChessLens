@@ -1,12 +1,2 @@
-"""
-runner.py
-
-Coordinates the main workflow of ChessLens.
-Connects UI, analysis, and automation modules.
-"""
-
-def run():
-    """
-    Main execution entry for ChessLens logic.
-    """
-    pass
+import subprocess
+subprocess.Popen(["open","-na","Brave Browser","https://www.chess.com"])
