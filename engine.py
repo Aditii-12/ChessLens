@@ -1,41 +1,32 @@
-import chess
 from stockfish import Stockfish
 
-# Update this path if needed (macOS homebrew default)
-STOCKFISH_PATH = "/opt/homebrew/bin/stockfish"
+STOCKFISH_PATH = "bin/stockfish"
 
 stockfish = Stockfish(
     path=STOCKFISH_PATH,
     parameters={
-        "Threads": 4,
-        "Hash": 256
+        "Threads": 2,
+        "Minimum Thinking Time": 30
     }
 )
 
-def analyze_fen(fen, depth=3):
-    """
-    Takes a FEN string and returns top engine moves.
-    """
-    board = chess.Board(fen)
+def analyze_fen(fen):
     stockfish.set_fen_position(fen)
-
-    top_moves = stockfish.get_top_moves(depth)
+    top_moves = stockfish.get_top_moves(3)
 
     results = []
     for move in top_moves:
-        cp = move.get("Centipawn")
+        score = move.get("Centipawn")
         mate = move.get("Mate")
 
         if mate is not None:
-            score = f"Mate in {mate}"
-        elif cp is not None:
-            score = f"{cp/100:.2f}"
+            eval_score = f"Mate in {mate}"
         else:
-            score = "?"
+            eval_score = f"{score/100:.2f}" if score else "?"
 
         results.append({
             "move": move["Move"],
-            "score": score
+            "score": eval_score
         })
 
     return results
