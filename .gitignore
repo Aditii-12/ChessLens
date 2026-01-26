@@ -4,5 +4,4 @@ __pycache__/
 *.db
 *.flag
 *.json
-bin/stockfish
-*.tar
+assets/moves/*.png
