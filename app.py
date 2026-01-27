@@ -63,7 +63,7 @@ elif auth_choice == "Logout":
 if st.session_state.logged_in:
     st.success(f"Welcome {st.session_state.username}")
     if st.button("▶ Play"):
-        subprocess.Popen(["python3", "mouse.py"])
+        subprocess.Popen(["python3", "runner.py"])
         st.session_state.played = True
 
     if st.session_state.played:
