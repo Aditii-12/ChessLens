@@ -30,70 +30,73 @@ It also includes mouse automation and structured runtime data handling for a smo
 
 ## 📂 Project Structure
 
+```text
 ChessLens/
-├── assets/                Static assets  
-├── data/                  Runtime-generated files  
-│   ├── chess_analysis.json  
-│   ├── latest_screen.json  
-│   └── ready.flag  
-├── app.py                 Main entry point  
-├── runner.py              Controls execution flow  
-├── mouse.py               Mouse automation logic  
-├── screen_shot.py         Screenshot capture  
-├── fen_gen.py             FEN generation logic  
-├── database.py            SQLite handling  
-├── util.py                Helper utilities  
-├── requirements.txt  
-├── .gitignore  
-└── README.md  
-
+├── assets/                Static assets
+├── data/                  Runtime-generated files
+│   ├── chess_analysis.json
+│   ├── latest_screen.json
+│   └── ready.flag
+├── app.py                 Main entry point
+├── runner.py              Controls execution flow
+├── mouse.py               Mouse automation logic
+├── screen_shot.py         Screenshot capture
+├── fen_gen.py             FEN generation logic
+├── database.py            SQLite handling
+├── util.py                Helper utilities
+├── requirements.txt
+├── .gitignore
+└── README.md
+```
 ---
 
 ## 🎯 Use Cases
 
 - Automated chess position analysis  
-- Studying best moves and evaluations  
+- Studying best moves and engine evaluations  
 - Assisting real-time chess gameplay  
-- Extending chess tooling on top of Stockfish  
-
+- Extending custom chess tooling on top of Stockfish  
 ---
 
 ## 🚀 Clone & Setup
 
-Clone the repository  
-git clone https://github.com/aditi-12/ChessLens.git  
-cd ChessLens  
+```bash
+git clone https://github.com/Aditii-12/ChessLens.git
+cd ChessLens
+```
+```bash
+python3.11 -m venv venv
+source venv/bin/activate
+venv\Scripts\activate  (Windows)
+```
+```bash
 
-Create virtual environment (Python 3.11 recommended)  
-python3.11 -m venv venv  
-
-Activate virtual environment  
-source venv/bin/activate        (macOS / Linux)  
-venv\\Scripts\\activate         (Windows)  
-
-Install dependencies  
-pip install -r requirements.txt  
-
+pip install -r requirements.txt
+```
 ---
 
 ## ▶️ Running the Project
+```bash
+python app.py
+```
 
-Run the main application  
-python app.py  
 
 The program will:
-- Capture the chessboard from screen  
-- Generate FEN using image processing  
-- Analyze the position with Stockfish  
-- Store results inside the data directory  
+- Capture the chessboard from the screen
+- Generate FEN using image processing
+- Analyze the position with Stockfish
+- Store results inside the data directory
 
 ---
 
 ## 📌 Notes
 
-ChessLens is a backend-focused project built for automation and analysis.  
-The architecture allows easy extension into UI or advanced analytics in the future.
+- Designed for backend-driven chess analysis and automation  
+- Requires a visible chessboard on screen for accurate capture  
+- Structured to allow future UI or analytics extensions
 
 ---
 
-Built with Python, Stockfish, and persistence.
+## 👤 Author
+
+Aditi Sahu
