@@ -1,112 +1,99 @@
 # ♟️ ChessLens
 
-ChessLens is a chess analysis project that integrates the **Stockfish chess engine** with a **Python-based application** to analyze chess positions and moves.  
-The project focuses on building a strong foundation by combining classical chess engines with modern development tools, with plans to expand into a full-featured chess analysis system.
+ChessLens is a Python-based chess analysis and automation project that captures live chessboard states from the screen, converts them into FEN notation, and analyzes positions using the Stockfish chess engine.  
+It also includes mouse automation and structured runtime data handling for a smooth analysis pipeline.
 
 ---
 
-## 🚀 Project Status
+## ✨ Features
 
-**Current Phase:** Core Engine Integration (In Progress)
-
-The project currently focuses on:
-- Integrating Stockfish with Python
-- Setting up a clean development environment
-- Verifying engine execution locally
-- Preparing the base structure for UI and analysis features
-
----
-
-## 🧠 What Has Been Implemented
-
-### Stockfish Engine
-- Stockfish engine installed and verified locally
-- Engine binary runs successfully from the terminal
-- UCI protocol-based interaction confirmed
-
-### Python Environment
-- Virtual environment created for dependency isolation
-- Required libraries installed
-- Engine execution tested inside the virtual environment
-
-### Project Structure
-- Clean and organized directory layout
-- Stockfish binary stored separately for easy upgrades
-- Base application file created for future development
+- Screenshot-based chessboard capture  
+- FEN generation from captured board state  
+- Stockfish-powered position analysis  
+- Mouse automation using PyAutoGUI  
+- Runtime data management using JSON and flags  
+- SQLite database support for structured storage  
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Language:** Python 3
-- **Engine:** Stockfish (UCI)
-- **Environment:** Python Virtual Environment (venv)
-- **Platform:** macOS
+- Python 3  
+- Stockfish (UCI chess engine)  
+- python-chess  
+- OpenCV  
+- PyAutoGUI  
+- SQLite  
+- Virtual Environment (venv)
 
 ---
 
 ## 📂 Project Structure
 
 ChessLens/
-├── bin/
-│   └── stockfish
-├── venv/
-├── app.py
-├── requirements.txt
-└── README.md
+├── assets/                Static assets  
+├── data/                  Runtime-generated files  
+│   ├── chess_analysis.json  
+│   ├── latest_screen.json  
+│   └── ready.flag  
+├── app.py                 Main entry point  
+├── runner.py              Controls execution flow  
+├── mouse.py               Mouse automation logic  
+├── screen_shot.py         Screenshot capture  
+├── fen_gen.py             FEN generation logic  
+├── database.py            SQLite handling  
+├── util.py                Helper utilities  
+├── requirements.txt  
+├── .gitignore  
+└── README.md  
 
 ---
 
-## ▶️ How to Run the Project
+## 🎯 Use Cases
 
-### Clone the Repository
-git clone <repository-url>  
-cd ChessLens
-
-### Activate Virtual Environment
-source venv/bin/activate
-
-### Test Stockfish Engine
-./bin/stockfish
-
-### Run the Application
-python app.py
+- Automated chess position analysis  
+- Studying best moves and evaluations  
+- Assisting real-time chess gameplay  
+- Extending chess tooling on top of Stockfish  
 
 ---
 
-## 🎯 Planned Features
+## 🚀 Clone & Setup
 
-- Chessboard UI using Streamlit
-- Position evaluation and best-move suggestions
-- Move-by-move analysis
-- Game review (blunders, mistakes, best moves)
-- PGN file upload and analysis
-- (Future) Machine learning-based player insights
+Clone the repository  
+git clone https://github.com/aditi-12/ChessLens.git  
+cd ChessLens  
 
----
+Create virtual environment (Python 3.11 recommended)  
+python3.11 -m venv venv  
 
-## 💡 Learning Outcomes
+Activate virtual environment  
+source venv/bin/activate        (macOS / Linux)  
+venv\\Scripts\\activate         (Windows)  
 
-- Chess engines and the UCI protocol
-- Python system-level integration
-- Virtual environments and dependency management
-- Debugging engine-driven applications
-- Structuring scalable software projects
+Install dependencies  
+pip install -r requirements.txt  
 
 ---
 
-## 🤝 Contributions
+## ▶️ Running the Project
 
-This project is under active development.  
-Suggestions, issues, and contributions are welcome.
+Run the main application  
+python app.py  
+
+The program will:
+- Capture the chessboard from screen  
+- Generate FEN using image processing  
+- Analyze the position with Stockfish  
+- Store results inside the data directory  
 
 ---
 
-## 📌 Note
+## 📌 Notes
 
-This README reflects the **current progress** of the project.  
-Features and structure will evolve as development continues.
+ChessLens is a backend-focused project built for automation and analysis.  
+The architecture allows easy extension into UI or advanced analytics in the future.
 
 ---
 
-Built with Python, Stockfish, and curiosity.
+Built with Python, Stockfish, and persistence.
