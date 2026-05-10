@@ -3,30 +3,32 @@ import mediapipe as mp
 import numpy as np
 import util
 import pyautogui as pag
-import time 
+import time
 import json
 import subprocess
-import streamlit as st
+import sys
+import os
+
+# ✅ FIX 1: Removed "import streamlit as st" — this file runs as a standalone
+#           OpenCV process. Importing Streamlit here causes a crash because
+#           Streamlit's runtime is not active in this process.
+
 def reset_data_files():
-    """Clear JSON files at the start of each run."""
-    json_files = [
-        "data/chess_analysis.json",
-        "data/latest_screen.json"
-    ]
+    """Clear JSON files and remove stale ready.flag at start of each run."""
+    os.makedirs("data", exist_ok=True)
 
-    for file in json_files:
-        try:
-            with open(file, "w") as f:
-                json.dump({}, f)  # empty JSON object
-            print(f"✅ Cleared {file}")
-        except FileNotFoundError:
-            # If file doesn't exist, create it empty
-            with open(file, "w") as f:
-                json.dump({}, f)
-            print(f"✅ Created empty {file}")
+    for file in ["data/chess_analysis.json", "data/latest_screen.json"]:
+        with open(file, "w") as f:
+            json.dump({}, f)
+        print(f"✅ Cleared {file}")
 
-screen_c=0
-# Setup mediapipe
+    # ✅ FIX 2: Delete stale ready.flag so the dashboard doesn't show old results
+    if os.path.exists("data/ready.flag"):
+        os.remove("data/ready.flag")
+        print("✅ Removed stale ready.flag")
+
+screen_c = 0
+
 pag.FAILSAFE = False
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(
@@ -38,12 +40,10 @@ hands = mp_hands.Hands(
 )
 draw = mp.solutions.drawing_utils
 
-# Cooldown timers
 last_left_click = 0
 last_right_click = 0
 last_screenshot = 0
 
-# === New global for fist move detection ===
 prev_wrist_y = None
 fist_triggered = False
 
@@ -81,52 +81,46 @@ def is_right_click(landmark, thumb_index_distance, angle):
 
 
 def palm_open_screenshot(land_mark):
-    global last_screenshot
-    global screen_c  # declare global separately
+    global last_screenshot, screen_c
 
-    thumb_pinky_dist = util.get_distance([land_mark[4], land_mark[20]])  # thumb tip = 4, pinky tip = 20
+    thumb_pinky_dist = util.get_distance([land_mark[4], land_mark[20]])
 
-    # Check if thumb tip touches pinky tip (distance small enough)
-    if thumb_pinky_dist is not None and thumb_pinky_dist < 40:  # adjust threshold as per your setup
+    if thumb_pinky_dist is not None and thumb_pinky_dist < 40:
         now = time.time()
-        if now - last_screenshot > 4:  # Minimum 4 sec delay
+        if now - last_screenshot > 4:
             last_screenshot = now
-            screen_c += 1   # increment counter
-            print(f"Screenshot #{screen_c} taken")
+            screen_c += 1
+            print(f"📸 Screenshot #{screen_c} triggered")
             return True
     return False
 
 
-# === New functions for fist + move down ===
 def is_palm_closed(land_mark):
-    """Check if most fingers are folded (fist)."""
     folded = 0
     for tip, base in [(8, 5), (12, 9), (16, 13), (20, 17)]:
-        if land_mark[tip][1] > land_mark[base][1]:  # tip below base
+        if land_mark[tip][1] > land_mark[base][1]:
             folded += 1
     return folded >= 3
 
 
 def detect_fist_move_down(land_mark):
     global prev_wrist_y, fist_triggered
-    wrist_y = land_mark[0][1]
 
+    wrist_y = land_mark[0][1]
     if prev_wrist_y is not None:
         delta_y = wrist_y - prev_wrist_y
         if delta_y > 20 and is_palm_closed(land_mark) and not fist_triggered:
             print("✊ Palm closed + move down → Switching window (⌘ + `)")
             pag.hotkey('command', '`')
             fist_triggered = True
-            time.sleep(0.5)  # cooldown
-        elif delta_y < -5:  # hand moved up → reset trigger
+            time.sleep(0.5)
+        elif delta_y < -5:
             fist_triggered = False
-
     prev_wrist_y = wrist_y
 
 
 def detect_gesture(frame, land_mark, results):
-    global last_left_click, last_right_click, last_screenshot
-    global dragging, last_drag
+    global last_left_click, last_right_click
 
     if len(land_mark) < 21:
         return
@@ -136,47 +130,47 @@ def detect_gesture(frame, land_mark, results):
     angle = util.get_angle(land_mark[5], land_mark[6], land_mark[8])
 
     if thumb_index_dis is not None:
-        # Move mouse (pinch but not dragging)
         if thumb_index_dis < 50 and angle > 90:
             move_mouse(index_finger_tip)
-
-        # Left click
         elif is_left_click(land_mark, thumb_index_dis, angle):
             if time.time() - last_left_click > 0.5:
                 pag.click(button='left')
                 print("Left Click")
                 last_left_click = time.time()
 
-        # Right click
         if is_right_click(land_mark, thumb_index_dis, angle):
             if time.time() - last_right_click > 0.5:
                 pag.click(button='right')
                 print("Right Click")
                 last_right_click = time.time()
 
-        if palm_open_screenshot(land_mark):
-            print("Palm open detected → Running board.py")
-            subprocess.Popen(["python3", "screen_shot.py"])
-            pag.sleep(4)
-            subprocess.Popen(["python3", "fen_gen.py"])
-            with open("data/latest_screen.json", "w") as f:
-                json.dump({"screen_c": screen_c}, f)
+    if palm_open_screenshot(land_mark):
+        print("🖐 Palm open → Running screenshot + analysis pipeline")
 
-            # ✅ Create/Update flag file
-            with open("data/ready.flag", "w") as f:
-                f.write("ready")
+        # ✅ FIX 3: Use sys.executable so scripts run inside the same venv
+        #           Original used hardcoded "python3" which can pick the wrong Python
+        subprocess.run([sys.executable, "screen_shot.py"])
+        pag.sleep(2)
+        subprocess.run([sys.executable, "fen_gen.py"])
 
-            return True
+        # ✅ FIX 4: Removed the duplicate latest_screen.json write that was here.
+        #           screen_shot.py already writes it with the correct counter.
+        #           Writing it again here with the local screen_c could overwrite
+        #           with a stale/wrong value.
 
-    # === check fist move down ===
+        # ✅ NOTE: ready.flag is now written by fen_gen.py — no need to write it here.
+        return True
+
     detect_fist_move_down(land_mark)
 
 
 def main():
     cap = cv2.VideoCapture(0)
-    subprocess.Popen(
-                ["venv/bin/streamlit", "run", "app.py"]
-            )
+
+    # ✅ FIX 5: Use sys.executable -m streamlit instead of hardcoded venv path
+    #           "venv/bin/streamlit" breaks if venv is named differently or not used
+    subprocess.Popen([sys.executable, "-m", "streamlit", "run", "app.py"])
+
     try:
         while True:
             ret, frame = cap.read()
@@ -187,18 +181,17 @@ def main():
             h, w, c = frame.shape
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = hands.process(rgb_frame)
-            land_mark = []
 
+            land_mark = []
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
                     draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
                     land_mark = np.array(
                         [(int(lm.x * w), int(lm.y * h)) for lm in hand_landmarks.landmark]
                     )
+                    detect_gesture(frame, land_mark, results)
 
-            detect_gesture(frame, land_mark, results)
             cv2.imshow('ChessFlow', frame)
-
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
     finally:
